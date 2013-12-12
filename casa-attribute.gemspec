@@ -10,4 +10,6 @@ Gem::Specification.new do |s|
 
   s.files       = ['lib/casa-attribute.rb']
 
+  s.add_development_dependency 'rake'
+
 end

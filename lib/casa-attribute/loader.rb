@@ -14,7 +14,7 @@ module CASA
 
       def self.load! attribute
 
-        unless attribute.has_key?('name') and attribute.has_key?('name')
+        unless attribute.has_key?('class') and attribute.has_key?('name')
           raise LoaderAttributeError
         end
 

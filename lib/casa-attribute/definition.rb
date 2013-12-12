@@ -27,15 +27,30 @@ module CASA
       #   squash Proc.new { |payload| routine }
       #
       def self.squash proc = nil, &block
-        @@attribute_squash_operations[self.name] = proc ? proc : block
+        if proc
+          @@attribute_squash_operations[self.name] = proc
+        elsif block
+          @@attribute_squash_operations[self.name] = block
+        end
+        @@attribute_squash_operations[self.name]
       end
 
       def self.filter proc = nil, &block
-        @@attribute_filter_operations[self.name] = proc ? proc : block
+        if proc
+          @@attribute_filter_operations[self.name] = proc
+        elsif block
+          @@attribute_filter_operations[self.name] = block
+        end
+        @@attribute_filter_operations[self.name]
       end
 
       def self.transform proc = nil, &block
-        @@attribute_transform_operations[self.name] = proc ? proc : block
+        if proc
+          @@attribute_transform_operations[self.name] = proc
+        elsif block
+          @@attribute_transform_operations[self.name] = block
+        end
+        @@attribute_transform_operations[self.name]
       end
 
       attr_reader :name
