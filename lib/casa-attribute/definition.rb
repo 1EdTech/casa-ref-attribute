@@ -18,6 +18,16 @@ module CASA
         @@attribute_sections.has_key?(self.name) ? @@attribute_sections[self.name] : []
       end
 
+      def self.operation operation_name, proc, block
+        operations = self.class_variable_get("@@attribute_#{operation_name}_operations".to_sym)
+        if proc
+          operations[self.name] = proc
+        elsif block
+          operations[self.name] = block
+        end
+        operations[self.name]
+      end
+
       # invoke within child class definition as either:
       #
       #   squash do |payload|
@@ -27,30 +37,15 @@ module CASA
       #   squash Proc.new { |payload| routine }
       #
       def self.squash proc = nil, &block
-        if proc
-          @@attribute_squash_operations[self.name] = proc
-        elsif block
-          @@attribute_squash_operations[self.name] = block
-        end
-        @@attribute_squash_operations[self.name]
+        self.operation 'squash', proc, block
       end
 
       def self.filter proc = nil, &block
-        if proc
-          @@attribute_filter_operations[self.name] = proc
-        elsif block
-          @@attribute_filter_operations[self.name] = block
-        end
-        @@attribute_filter_operations[self.name]
+        self.operation 'filter', proc, block
       end
 
       def self.transform proc = nil, &block
-        if proc
-          @@attribute_transform_operations[self.name] = proc
-        elsif block
-          @@attribute_transform_operations[self.name] = block
-        end
-        @@attribute_transform_operations[self.name]
+        self.operation 'transform', proc, block
       end
 
       attr_reader :name
