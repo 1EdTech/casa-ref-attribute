@@ -1,5 +1,5 @@
 require 'test/unit'
-require 'casa-attribute/definition'
+require 'casa/attribute/definition'
 
 module CASA
   module Attribute

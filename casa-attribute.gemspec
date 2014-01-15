@@ -1,3 +1,5 @@
+# coding: utf-8
+
 Gem::Specification.new do |s|
 
   s.name        = 'casa-attribute'
@@ -5,10 +7,13 @@ Gem::Specification.new do |s|
   s.summary     = 'Reference implementation of the attribute specification base for the CASA Protocol'
   s.authors     = ['Eric Bollens']
   s.email       = ['ebollens@ucla.edu']
-  s.homepage    = 'https://appsharing.github.io/casa-protocol'
+  s.homepage    = 'https://appsharing.github.io'
   s.license     = 'BSD-3-Clause'
 
-  s.files       = ['lib/casa-attribute.rb']
+  s.files         = `git ls-files`.split($/)
+  s.executables   = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  s.test_files    = s.files.grep(%r{^(test|spec|features)/})
+  s.require_paths = ['lib']
 
   s.add_development_dependency 'rake'
 

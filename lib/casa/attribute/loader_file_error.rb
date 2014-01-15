@@ -1,4 +1,4 @@
-require 'casa-attribute/loader_error'
+require 'casa/attribute/loader_error'
 
 module CASA
   module Attribute

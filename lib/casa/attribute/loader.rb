@@ -1,6 +1,6 @@
-require 'casa-attribute/loader_class_error'
-require 'casa-attribute/loader_file_error'
-require 'casa-attribute/loader_attribute_error'
+require 'casa/attribute/loader_class_error'
+require 'casa/attribute/loader_file_error'
+require 'casa/attribute/loader_attribute_error'
 
 module CASA
   module Attribute
@@ -51,7 +51,7 @@ module CASA
 
       def process_path
         unless @attribute.has_key? 'path'
-          @attribute['path'] = @attribute['class'].gsub(/^CASA::Attribute::/, 'casa-attribute/').gsub('::','/').downcase
+          @attribute['path'] = @attribute['class'].gsub('::','/').downcase
         end
       end
 
