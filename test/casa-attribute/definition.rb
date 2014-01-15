@@ -24,6 +24,42 @@ module CASA
   end
 end
 
+module CASA
+  module Attribute
+    class TestWithHandlers < Definition
+
+      class Handler
+        def initialize definition, options = nil
+          @definition = definition
+        end
+      end
+      class SquashHandler < Handler
+        def process payload
+          'squash'
+        end
+      end
+      class FilterHandler < Handler
+        def process payload
+          true
+        end
+      end
+      class TransformHandler < Handler
+        def process payload
+          'transform'
+        end
+      end
+
+      uuid '0307bb8a-62ef-11e3-bf13-d231feb1dc82'
+      section 'use'
+
+      squash SquashHandler
+      filter FilterHandler
+      transform TransformHandler
+
+    end
+  end
+end
+
 class TestCASAAttributeDefinition < Test::Unit::TestCase
 
   def test_uuid
@@ -75,6 +111,9 @@ class TestCASAAttributeDefinition < Test::Unit::TestCase
     attr = CASA::Attribute::Test.new('attr')
     assert attr.squash({}) == 'squash'
 
+    attr = CASA::Attribute::TestWithHandlers.new('attr')
+    assert attr.squash({}) == 'squash'
+
     # test passing of Proc
     CASA::Attribute::Test.squash Proc.new { |payload| payload['text'] }
     attr = CASA::Attribute::Test.new('attr')
@@ -101,6 +140,9 @@ class TestCASAAttributeDefinition < Test::Unit::TestCase
 
     # test that behavior defined in class definition propagates
     attr = CASA::Attribute::Test.new('attr')
+    assert attr.filter({}) == true
+
+    attr = CASA::Attribute::TestWithHandlers.new('attr')
     assert attr.filter({}) == true
 
     # test passing of Proc
@@ -131,6 +173,9 @@ class TestCASAAttributeDefinition < Test::Unit::TestCase
 
     # test that behavior defined in class definition propagates
     attr = CASA::Attribute::Test.new('attr')
+    assert attr.transform({}) == 'transform'
+
+    attr = CASA::Attribute::TestWithHandlers.new('attr')
     assert attr.transform({}) == 'transform'
 
     # test passing of Proc

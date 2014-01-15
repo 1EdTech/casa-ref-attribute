@@ -52,8 +52,26 @@ module CASA
       attr_reader :options
 
       def initialize name, options = nil
+
         @name = name
         @options = options ? options : {}
+
+        if @@attribute_squash_operations.include?(self.class.name) and @@attribute_squash_operations[self.class.name].is_a?(Class)
+          @squash_strategy = @@attribute_squash_operations[self.class.name].new(self, @options.has_key?('squash') ? @options['squash'] : nil)
+        end
+
+        if @@attribute_filter_operations.include?(self.class.name) and @@attribute_filter_operations[self.class.name].is_a?(Class)
+          @filter_strategy = @@attribute_filter_operations[self.class.name].new(self, @options.has_key?('filter') ? @options['filter'] : nil)
+        end
+
+        if @@attribute_transform_operations.include?(self.class.name) and @@attribute_transform_operations[self.class.name].is_a?(Class)
+          @transform_strategy = @@attribute_transform_operations[self.class.name].new(self, @options.has_key?('transform') ? @options['transform'] : nil)
+        end
+        
+      end
+
+      def instance_run payload, strategy
+        instance_exec payload, &strategy
       end
 
       def uuid
@@ -64,20 +82,28 @@ module CASA
         self.class.section
       end
 
-      def instance_run payload, strategy
-        instance_exec payload, &strategy
-      end
-
       def squash payload
-        instance_run payload.to_hash, @@attribute_squash_operations[self.class.name]
+        if defined? @squash_strategy
+          @squash_strategy.process(payload)
+        else
+          instance_run payload.to_hash, @@attribute_squash_operations[self.class.name]
+        end
       end
 
       def filter payload
-        instance_run payload.to_hash, @@attribute_filter_operations[self.class.name]
+        if defined? @filter_strategy
+          @filter_strategy.process(payload)
+        else
+          instance_run payload.to_hash, @@attribute_filter_operations[self.class.name]
+        end
       end
 
       def transform payload
-        instance_run payload.to_hash, @@attribute_transform_operations[self.class.name]
+        if defined? @transform_strategy
+          @transform_strategy.process(payload)
+        else
+          instance_run payload.to_hash, @@attribute_transform_operations[self.class.name]
+        end
       end
 
     end
