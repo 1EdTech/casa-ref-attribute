@@ -91,14 +91,14 @@ module CASA
         if @handlers.include? operation
           @handlers[operation].process(payload)
         else
-          instance_exec payload.to_hash, &(self.class.class_variable_get("@@operation_#{operation}")[self.class.name])
+          klass = self.class
+          instance_exec payload.to_hash, &(klass.class_variable_get(klass.operation_class_var_name operation)[klass.name])
         end
       end
 
       ['uuid','section'].each { |attribute| support_attribute attribute }
 
       ['squash','filter','transform'].each { |operation| support_operation operation }
-
 
       # invoke within child class definition as any of:
       #

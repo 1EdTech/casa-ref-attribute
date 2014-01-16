@@ -197,4 +197,55 @@ class TestCASAAttributeDefinition < Test::Unit::TestCase
 
   end
 
+  def test_class_attribute_support
+
+    name = 'attrtest'
+    class_var_name = CASA::Attribute::Definition.attribute_class_var_name name
+
+    assert class_var_name.is_a? Symbol
+    assert class_var_name == "@@attribute_#{name}".to_sym
+    assert !CASA::Attribute::Definition.class_variable_defined?(class_var_name)
+    assert !CASA::Attribute::Definition.respond_to?(name)
+    assert !CASA::Attribute::Definition.new('test').respond_to?(name)
+
+    assert CASA::Attribute::Definition.respond_to?(:support_attribute)
+    CASA::Attribute::Definition.support_attribute name
+
+    assert CASA::Attribute::Definition.class_variable_defined?(class_var_name)
+    assert CASA::Attribute::Definition.respond_to?(name)
+    assert CASA::Attribute::Definition.new('test').respond_to?(name)
+
+    CASA::Attribute::Test.send(name.to_sym, 'testing')
+    assert CASA::Attribute::Test.send(name.to_sym) == 'testing'
+    assert CASA::Attribute::Test.new('attr').send(name.to_sym) == 'testing'
+
+  end
+
+  def test_class_operation_support
+
+    name = 'opertest'
+    class_var_name = CASA::Attribute::Definition.operation_class_var_name name
+
+    assert class_var_name.is_a? Symbol
+    assert class_var_name == "@@operation_#{name}".to_sym
+    assert !CASA::Attribute::Definition.class_variable_defined?(class_var_name)
+    assert !CASA::Attribute::Definition.respond_to?(name)
+    assert !CASA::Attribute::Definition.new('test').respond_to?(name)
+
+    assert CASA::Attribute::Definition.respond_to?(:support_operation)
+    CASA::Attribute::Definition.support_operation name
+
+    assert CASA::Attribute::Definition.class_variable_defined?(class_var_name)
+    assert CASA::Attribute::Definition.respond_to?(name)
+    assert CASA::Attribute::Definition.new('test').respond_to?(name)
+
+    CASA::Attribute::Test.send(name.to_sym) do |payload|
+      payload['value2']
+    end
+    attr = CASA::Attribute::Test.new('attr')
+    assert attr.send(name.to_sym, {'value2'=>false}) == false
+    assert attr.send(name.to_sym, {'value2'=>true}) == true
+
+  end
+
 end
