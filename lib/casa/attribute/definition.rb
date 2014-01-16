@@ -2,50 +2,70 @@ module CASA
   module Attribute
     class Definition
 
-      @@attribute_uuids = {}
-      @@attribute_sections = {}
-      @@attribute_squash_operations = {}
-      @@attribute_filter_operations = {}
-      @@attribute_transform_operations = {}
+      class << self
 
-      def self.uuid uuid = nil
-        @@attribute_uuids[self.name] = uuid if uuid
-        @@attribute_uuids[self.name]
-      end
+        def attribute_class_var_name attribute_name
 
-      def self.section section = nil
-        @@attribute_sections[self.name] = section if section
-        @@attribute_sections.has_key?(self.name) ? @@attribute_sections[self.name] : []
-      end
+          "@@attribute_#{attribute_name}".to_sym
 
-      def self.operation operation_name, proc, block
-        operations = self.class_variable_get("@@attribute_#{operation_name}_operations".to_sym)
-        if proc
-          operations[self.name] = proc
-        elsif block
-          operations[self.name] = block
         end
-        operations[self.name]
-      end
 
-      # invoke within child class definition as either:
-      #
-      #   squash do |payload|
-      #     routine
-      #   end
-      #
-      #   squash Proc.new { |payload| routine }
-      #
-      def self.squash proc = nil, &block
-        self.operation 'squash', proc, block
-      end
+        def attribute attribute_name, attribute_value
 
-      def self.filter proc = nil, &block
-        self.operation 'filter', proc, block
-      end
+          attribute_class_var = class_variable_get attribute_class_var_name attribute_name
+          attribute_class_var[name] = attribute_value if attribute_value
+          attribute_class_var[name]
 
-      def self.transform proc = nil, &block
-        self.operation 'transform', proc, block
+        end
+
+        def support_attribute attribute_name
+
+          class_variable_set attribute_class_var_name(attribute_name), {}
+
+          self.class.send :define_method, attribute_name.to_sym do |attribute_value = nil|
+            attribute attribute_name, attribute_value
+          end
+
+          define_method(attribute_name.to_sym) do
+            self.class.send attribute_name.to_sym
+          end
+
+        end
+
+        def operation_class_var_name operation_name
+
+          "@@operation_#{operation_name}".to_sym
+
+        end
+
+        def operation operation_name, proc, block
+
+          operations = class_variable_get operation_class_var_name operation_name
+
+          if proc
+            operations[name] = proc
+          elsif block
+            operations[name] = block
+          end
+
+          operations[name]
+
+        end
+
+        def support_operation operation_name
+
+          class_variable_set "@@operation_#{operation_name}", {}
+
+          self.class.send :define_method, operation_name do |proc = nil, &block|
+            operation operation_name, proc, block
+          end
+
+          define_method(operation_name.to_sym) do |payload|
+            run_handler operation_name, payload
+          end
+
+        end
+
       end
 
       attr_reader :name
@@ -56,55 +76,52 @@ module CASA
         @name = name
         @options = options ? options : {}
 
-        if @@attribute_squash_operations.include?(self.class.name) and @@attribute_squash_operations[self.class.name].is_a?(Class)
-          @squash_strategy = @@attribute_squash_operations[self.class.name].new(self, @options.has_key?('squash') ? @options['squash'] : nil)
+        @handlers = {}
+        ['squash','filter','transform'].each do |operation|
+          registered = self.class.class_variable_get("@@operation_#{operation}")
+          class_name = self.class.name
+          if registered.include?(class_name) and registered[class_name].is_a?(Class)
+            @handlers[operation] = registered[class_name].new(self, @options.has_key?(operation) ? @options[operation] : nil)
+          end
         end
 
-        if @@attribute_filter_operations.include?(self.class.name) and @@attribute_filter_operations[self.class.name].is_a?(Class)
-          @filter_strategy = @@attribute_filter_operations[self.class.name].new(self, @options.has_key?('filter') ? @options['filter'] : nil)
-        end
-
-        if @@attribute_transform_operations.include?(self.class.name) and @@attribute_transform_operations[self.class.name].is_a?(Class)
-          @transform_strategy = @@attribute_transform_operations[self.class.name].new(self, @options.has_key?('transform') ? @options['transform'] : nil)
-        end
-        
       end
 
-      def instance_run payload, strategy
-        instance_exec payload, &strategy
-      end
-
-      def uuid
-        self.class.uuid
-      end
-
-      def section
-        self.class.section
-      end
-
-      def squash payload
-        if defined? @squash_strategy
-          @squash_strategy.process(payload)
+      def run_handler operation, payload
+        if @handlers.include? operation
+          @handlers[operation].process(payload)
         else
-          instance_run payload.to_hash, @@attribute_squash_operations[self.class.name]
+          instance_exec payload.to_hash, &(self.class.class_variable_get("@@operation_#{operation}")[self.class.name])
         end
       end
 
-      def filter payload
-        if defined? @filter_strategy
-          @filter_strategy.process(payload)
-        else
-          instance_run payload.to_hash, @@attribute_filter_operations[self.class.name]
-        end
-      end
+      ['uuid','section'].each { |attribute| support_attribute attribute }
 
-      def transform payload
-        if defined? @transform_strategy
-          @transform_strategy.process(payload)
-        else
-          instance_run payload.to_hash, @@attribute_transform_operations[self.class.name]
-        end
-      end
+      ['squash','filter','transform'].each { |operation| support_operation operation }
+
+
+      # invoke within child class definition as any of:
+      #
+      #   class MySquashHandler < ::CASA::Operation::Strategy
+      #     def initialize definition, options = nil
+      #       # do whatever
+      #     end
+      #     def process payload
+      #       # return processed payload attribute (or bool in filter case)
+      #     end
+      #   end
+      #   squash MySquashHandler
+      #
+      #   ----
+      #
+      #   squash do |payload|
+      #     routine
+      #   end
+      #
+      #   ----
+      #
+      #   squash Proc.new { |payload| routine }
+      #
 
     end
   end
