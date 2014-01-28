@@ -66,10 +66,39 @@ module CASA
 
         end
 
+        def support_operation_alias operation_name, aliased_operation_names
+
+          self.class.send :define_method, operation_name do |proc = nil, &block|
+            aliased_operation_names.each do |aliased_operation_name|
+              send(aliased_operation_name.to_sym, proc, &block)
+            end
+          end
+
+        end
+
       end
 
       attr_reader :name
       attr_reader :options
+
+      ATTRIBUTES = [
+        'uuid',
+        'section'
+      ]
+
+      OPERATIONS = [
+        'in_squash',
+        'in_filter',
+        'in_transform',
+        'out_transform',
+        'out_filter'
+      ]
+
+      OPERATION_ALIASES = {
+        'squash' => ['in_squash'],
+        'filter' => ['in_filter','out_filter'],
+        'transform' => ['in_transform','out_transform']
+      }
 
       def initialize name, options = nil
 
@@ -77,7 +106,7 @@ module CASA
         @options = options ? options : {}
 
         @handlers = {}
-        ['squash','filter','transform'].each do |operation|
+        OPERATIONS.each do |operation|
           registered = self.class.class_variable_get("@@operation_#{operation}")
           class_name = self.class.name
           if registered.include?(class_name) and registered[class_name].is_a?(Class)
@@ -96,9 +125,9 @@ module CASA
         end
       end
 
-      ['uuid','section'].each { |attribute| support_attribute attribute }
-
-      ['squash','filter','transform'].each { |operation| support_operation operation }
+      ATTRIBUTES.each { |attribute| support_attribute attribute }
+      OPERATIONS.each { |operation| support_operation operation }
+      OPERATION_ALIASES.each { |operation_name, operation_alias_names| support_operation_alias operation_name, operation_alias_names }
 
       # invoke within child class definition as any of:
       #

@@ -8,16 +8,24 @@ module CASA
       uuid '0307bb8a-62ef-11e3-bf13-d231feb1dc81'
       section 'use'
 
-      squash do |payload|
+      in_squash do |payload|
         'squash'
       end
 
-      filter do |payload|
+      in_filter do |payload|
         true
       end
 
-      transform do |payload|
-        'transform'
+      in_transform do |payload|
+        'in_transform'
+      end
+
+      out_transform do |payload|
+        'out_transform'
+      end
+
+      out_filter do |payload|
+        true
       end
 
     end
@@ -43,22 +51,54 @@ module CASA
           true
         end
       end
-      class TransformHandler < Handler
+      class TransformInHandler < Handler
         def process payload
-          'transform'
+          'in_transform'
+        end
+      end
+      class TransformOutHandler < Handler
+        def process payload
+          'out_transform'
         end
       end
 
       uuid '0307bb8a-62ef-11e3-bf13-d231feb1dc82'
       section 'use'
 
-      squash SquashHandler
-      filter FilterHandler
-      transform TransformHandler
+      in_squash SquashHandler
+      in_filter FilterHandler
+      in_transform TransformInHandler
+      out_transform TransformOutHandler
+      out_filter FilterHandler
 
     end
   end
 end
+
+module CASA
+  module Attribute
+    class TestWithAliases < Definition
+
+      uuid '0307bb8a-62ef-11e3-bf13-d231feb1dc81'
+      section 'use'
+
+      squash do |payload|
+        'squash'
+      end
+
+      filter do |payload|
+        true
+      end
+
+      transform do |payload|
+        'transform'
+      end
+
+    end
+  end
+end
+
+
 
 class TestCASAAttributeDefinition < Test::Unit::TestCase
 
@@ -102,98 +142,58 @@ class TestCASAAttributeDefinition < Test::Unit::TestCase
 
   end
 
-  def test_squash
+  def test_in_squash
 
     # get original proc to restore at end
-    proc = CASA::Attribute::Test.squash
+    proc = CASA::Attribute::Test.in_squash
 
     # test that behavior defined in class definition propagates
     attr = CASA::Attribute::Test.new('attr')
-    assert attr.squash({}) == 'squash'
+    assert attr.in_squash({}) == 'squash'
 
     attr = CASA::Attribute::TestWithHandlers.new('attr')
-    assert attr.squash({}) == 'squash'
+    assert attr.in_squash({}) == 'squash'
 
     # test passing of Proc
-    CASA::Attribute::Test.squash Proc.new { |payload| payload['text'] }
+    CASA::Attribute::Test.in_squash Proc.new { |payload| payload['text'] }
     attr = CASA::Attribute::Test.new('attr')
-    assert attr.squash({'text'=>'test'}) == 'test'
+    assert attr.in_squash({'text'=>'test'}) == 'test'
 
     # test passing of block
-    CASA::Attribute::Test.squash do |payload|
+    CASA::Attribute::Test.in_squash do |payload|
       payload['text2']
     end
     attr = CASA::Attribute::Test.new('attr')
-    assert attr.squash({'text2'=>'test2'}) == 'test2'
+    assert attr.in_squash({'text2'=>'test2'}) == 'test2'
 
     # test restore was successful
-    CASA::Attribute::Test.squash proc
+    CASA::Attribute::Test.in_squash proc
     attr = CASA::Attribute::Test.new('attr')
-    assert attr.squash({}) == 'squash'
+    assert attr.in_squash({}) == 'squash'
 
   end
 
-  def test_filter
+  def test_filter_in
 
-    # get original proc to restore at end
-    proc = CASA::Attribute::Test.filter
-
-    # test that behavior defined in class definition propagates
-    attr = CASA::Attribute::Test.new('attr')
-    assert attr.filter({}) == true
-
-    attr = CASA::Attribute::TestWithHandlers.new('attr')
-    assert attr.filter({}) == true
-
-    # test passing of Proc
-    CASA::Attribute::Test.filter Proc.new { |payload| payload['value'] }
-    attr = CASA::Attribute::Test.new('attr')
-    assert attr.filter({'value'=>false}) == false
-    assert attr.filter({'value'=>true}) == true
-
-    # test passing of block
-    CASA::Attribute::Test.filter do |payload|
-      payload['value2']
-    end
-    attr = CASA::Attribute::Test.new('attr')
-    assert attr.filter({'value2'=>false}) == false
-    assert attr.filter({'value2'=>true}) == true
-
-    # test restore was successful
-    CASA::Attribute::Test.filter proc
-    attr = CASA::Attribute::Test.new('attr')
-    assert attr.filter({}) == true
+    _test_filter 'in'
 
   end
 
-  def test_transform
+  def test_filter_out
 
-    # get original proc to restore at end
-    proc = CASA::Attribute::Test.transform
+    _test_filter 'out'
 
-    # test that behavior defined in class definition propagates
-    attr = CASA::Attribute::Test.new('attr')
-    assert attr.transform({}) == 'transform'
+  end
 
-    attr = CASA::Attribute::TestWithHandlers.new('attr')
-    assert attr.transform({}) == 'transform'
+  def test_transform_in
 
-    # test passing of Proc
-    CASA::Attribute::Test.transform Proc.new { |payload| payload['text'] }
-    attr = CASA::Attribute::Test.new('attr')
-    assert attr.transform({'text'=>'test'}) == 'test'
+    _test_transform 'in'
 
-    # test passing of block
-    CASA::Attribute::Test.transform do |payload|
-      payload['text2']
-    end
-    attr = CASA::Attribute::Test.new('attr')
-    assert attr.transform({'text2'=>'test2'}) == 'test2'
+  end
 
-    # test restore was successful
-    CASA::Attribute::Test.transform proc
-    attr = CASA::Attribute::Test.new('attr')
-    assert attr.transform({}) == 'transform'
+  def test_transform_out
+
+    _test_transform 'out'
 
   end
 
@@ -246,6 +246,96 @@ class TestCASAAttributeDefinition < Test::Unit::TestCase
     assert attr.send(name.to_sym, {'value2'=>false}) == false
     assert attr.send(name.to_sym, {'value2'=>true}) == true
 
+  end
+
+  def test_class_operation_alias_support
+
+    alias_name = 'operAlias'
+    aliased_names = ['operAliased1','operAliased2']
+
+    aliased_names.each { |name| CASA::Attribute::Definition.support_operation name }
+    CASA::Attribute::Definition.support_operation_alias alias_name, aliased_names
+
+    CASA::Attribute::Test.send(alias_name.to_sym) do |payload|
+      payload['value3']
+    end
+
+    attr = CASA::Attribute::Test.new('attr')
+    aliased_names.each do |name|
+      assert attr.send(name.to_sym, {'value3'=>false}) == false
+      assert attr.send(name.to_sym, {'value3'=>true}) == true
+    end
+
+  end
+
+  private
+
+  def _test_transform dir
+
+    str = "#{dir}_transform"
+    method = str.to_sym
+
+    # get original proc to restore at end
+    proc = CASA::Attribute::Test.send(method)
+
+    # test that behavior defined in class definition propagates
+    attr = CASA::Attribute::Test.new('attr')
+    assert attr.send(method, {}) == str
+
+    attr = CASA::Attribute::TestWithHandlers.new('attr')
+    assert attr.send(method, {}) == str
+
+    # test passing of Proc
+    CASA::Attribute::Test.send(method, Proc.new { |payload| payload['text'] })
+    attr = CASA::Attribute::Test.new('attr')
+    assert attr.send(method, {'text'=>'test'}) == 'test'
+
+    # test passing of block
+    CASA::Attribute::Test.send(method) do |payload|
+      payload['text2']
+    end
+    attr = CASA::Attribute::Test.new('attr')
+    assert attr.send(method, {'text2'=>'test2'}) == 'test2'
+
+    # test restore was successful
+    CASA::Attribute::Test.send(method, proc)
+    attr = CASA::Attribute::Test.new('attr')
+    assert attr.send(method, {}) == str
+
+  end
+
+  def _test_filter dir
+
+    method = "#{dir}_filter".to_sym
+
+    # get original proc to restore at end
+    proc = CASA::Attribute::Test.send(method)
+
+    # test that behavior defined in class definition propagates
+    attr = CASA::Attribute::Test.new('attr')
+    assert attr.send(method, {}) == true
+
+    attr = CASA::Attribute::TestWithHandlers.new('attr')
+    assert attr.send(method, {}) == true
+
+    # test passing of Proc
+    CASA::Attribute::Test.send(method, Proc.new { |payload| payload['value'] })
+    attr = CASA::Attribute::Test.new('attr')
+    assert attr.send(method, {'value'=>false}) == false
+    assert attr.send(method, {'value'=>true}) == true
+
+    # test passing of block
+    CASA::Attribute::Test.send(method) do |payload|
+      payload['value2']
+    end
+    attr = CASA::Attribute::Test.new('attr')
+    assert attr.send(method, {'value2'=>false}) == false
+    assert attr.send(method, {'value2'=>true}) == true
+
+    # test restore was successful
+    CASA::Attribute::Test.send(method, proc)
+    attr = CASA::Attribute::Test.new('attr')
+    assert attr.send(method, {}) == true
   end
 
 end
