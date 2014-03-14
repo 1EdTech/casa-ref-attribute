@@ -1,8 +1,8 @@
 require 'test/unit'
 require 'casa/attribute/loader'
-require 'casa/attribute/strategy/filter/list'
+require 'casa/attribute/strategy/filter/string'
 
-class TestCASAAttributeStrategyFilterList < Test::Unit::TestCase
+class TestCASAAttributeStrategyFilterString < Test::Unit::TestCase
 
   def test_filter
 
@@ -11,7 +11,7 @@ class TestCASAAttributeStrategyFilterList < Test::Unit::TestCase
     attr = CASA::Attribute::Loader.loaded['attr']
     attr.class.section 'use'
 
-    assert CASA::Attribute::Strategy::Filter::List.new(attr, {
+    assert CASA::Attribute::Strategy::Filter::String.new(attr, {
 
     }).process({
       'attributes' => {
@@ -21,7 +21,7 @@ class TestCASAAttributeStrategyFilterList < Test::Unit::TestCase
       }
     })
 
-    assert CASA::Attribute::Strategy::Filter::List.new(attr, {
+    assert CASA::Attribute::Strategy::Filter::String.new(attr, {
       'blacklist' => []
     }).process({
       'attributes' => {
@@ -32,7 +32,7 @@ class TestCASAAttributeStrategyFilterList < Test::Unit::TestCase
     })
 
     # direct string match
-    assert !CASA::Attribute::Strategy::Filter::List.new(attr, {
+    assert !CASA::Attribute::Strategy::Filter::String.new(attr, {
       'blacklist' => [
         'foobar'
       ]
@@ -45,7 +45,7 @@ class TestCASAAttributeStrategyFilterList < Test::Unit::TestCase
     })
 
     # regex match
-    assert !CASA::Attribute::Strategy::Filter::List.new(attr, {
+    assert !CASA::Attribute::Strategy::Filter::String.new(attr, {
       'blacklist' => [
         '/ooba/'
       ]
@@ -58,7 +58,7 @@ class TestCASAAttributeStrategyFilterList < Test::Unit::TestCase
     })
 
     # direct string no match
-    assert CASA::Attribute::Strategy::Filter::List.new(attr, {
+    assert CASA::Attribute::Strategy::Filter::String.new(attr, {
       'blacklist' => [
         'ooba'
       ]
@@ -71,7 +71,7 @@ class TestCASAAttributeStrategyFilterList < Test::Unit::TestCase
     })
 
     # regex match
-    assert !CASA::Attribute::Strategy::Filter::List.new(attr, {
+    assert !CASA::Attribute::Strategy::Filter::String.new(attr, {
       'blacklist' => [
         '/.*bar$/'
       ]

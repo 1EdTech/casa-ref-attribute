@@ -19,6 +19,28 @@ module CASA
 
         end
 
+        def match_string_to_regex string
+
+          if string[0] == '/' and string[string.length-1] == '/'
+            /#{string[1,string.length-2]}/
+          else
+            /^#{string}$/
+          end
+
+        end
+
+        def attribute_from payload
+
+          attributes = payload['attributes']
+
+          if attributes.has_key?(section) and attributes[section].has_key?(name)
+            attributes[section][name]
+          else
+            nil
+          end
+
+        end
+
       end
     end
   end
