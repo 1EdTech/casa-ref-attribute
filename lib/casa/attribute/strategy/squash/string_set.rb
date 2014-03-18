@@ -1,10 +1,10 @@
-require 'casa/attribute/strategy/squash/object'
+require 'casa/attribute/strategy/squash/string'
 
 module CASA
   module Attribute
     module Strategy
       module Squash
-        class String < Object
+        class StringSet < String
 
         end
       end

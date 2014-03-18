@@ -1,10 +1,10 @@
-require 'casa/attribute/strategy/base'
+require 'casa/attribute/strategy/transform/object'
 
 module CASA
   module Attribute
     module Strategy
       module Transform
-        class String < ::CASA::Attribute::Strategy::Base
+        class String < Object
 
           def process payload
 
@@ -26,19 +26,9 @@ module CASA
 
           end
 
-          def by_replacement_for payload
-
-            payload_key = "#{payload['identity']['id']}@#{payload['identity']['originator_id']}"
-
-            if @options['replace'].has_key? payload_key
-              @options['replace'][payload_key]
-            else
-              nil
-            end
-
-          end
-
           def by_substitution_for payload
+
+            return nil unless attribute_in? payload
 
             attr = attribute_from payload
 
@@ -47,18 +37,6 @@ module CASA
             end
 
             attr
-
-          end
-
-          def current_value_for payload
-
-            attributes = payload['attributes']
-
-            if attributes.has_key?(definition.section) and attributes[definition.section].has_key?(definition.name)
-              attributes[definition.section][definition.name]
-            else
-              nil
-            end
 
           end
 

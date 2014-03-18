@@ -118,10 +118,11 @@ module CASA
 
       def run_handler operation, payload
         if @handlers.include? operation
-          @handlers[operation].process(payload)
+          @handlers[operation].process(payload) if @handlers.has_key?(operation)
         else
           klass = self.class
-          instance_exec payload.to_hash, &(klass.class_variable_get(klass.operation_class_var_name operation)[klass.name])
+          operation_proc = klass.class_variable_get(klass.operation_class_var_name operation)[klass.name]
+          instance_exec payload.to_hash, &operation_proc if operation_proc
         end
       end
 

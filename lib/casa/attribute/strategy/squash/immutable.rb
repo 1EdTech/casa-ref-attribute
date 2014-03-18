@@ -4,7 +4,13 @@ module CASA
   module Attribute
     module Strategy
       module Squash
-        class String < Object
+        class Immutable < Object
+
+          def process payload
+
+            use_original_from payload
+
+          end
 
         end
       end

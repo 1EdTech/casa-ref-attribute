@@ -8,6 +8,8 @@ module CASA
 
           def process payload
 
+            return true unless attribute_in? payload
+
             if options.has_key? 'blacklist'
               process_blacklist payload
             else
@@ -20,7 +22,11 @@ module CASA
 
           def process_blacklist payload
 
-            attr = attribute_from payload
+            passes_blacklist? attribute_from payload
+
+          end
+
+          def passes_blacklist? attr
 
             accept = true
             @options['blacklist'].each do |match_string|

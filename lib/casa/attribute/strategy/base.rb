@@ -29,15 +29,16 @@ module CASA
 
         end
 
+        def attribute_in? payload
+
+          attrs = payload['attributes']
+          attrs.has_key?(section) and attrs[section].has_key?(name) and !attrs[section][name].nil?
+
+        end
+
         def attribute_from payload
 
-          attributes = payload['attributes']
-
-          if attributes.has_key?(section) and attributes[section].has_key?(name)
-            attributes[section][name]
-          else
-            nil
-          end
+          attribute_in?(payload) ? payload['attributes'][section][name] : nil
 
         end
 
