@@ -7,16 +7,20 @@ module CASA
         attr_reader :uuid
         attr_reader :name
         attr_reader :section
-        attr_reader :options
+        attr_reader :operation
 
-        def initialize definition, options = nil
+        def initialize definition, operation
 
           @definition = definition
           @uuid = definition.uuid
           @name = definition.name
           @section = definition.section
-          @options = options ? options : {}
+          @operation = operation
 
+        end
+
+        def options
+          definition.options.has_key?(operation) ? definition.options[operation] : {}
         end
 
         def match_string_to_regex string

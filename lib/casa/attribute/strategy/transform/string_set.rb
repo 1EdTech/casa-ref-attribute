@@ -12,7 +12,7 @@ module CASA
 
             # precompute substitution regexes
             substitution_regexes = {}
-            @options['substitute'].each do |match_string, replacement|
+            options['substitute'].each do |match_string, replacement|
               substitution_regexes[match_string_to_regex(match_string)] = replacement
             end
 

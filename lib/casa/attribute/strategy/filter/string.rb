@@ -29,7 +29,7 @@ module CASA
           def passes_blacklist? attr
 
             accept = true
-            @options['blacklist'].each do |match_string|
+            options['blacklist'].each do |match_string|
               if attr.match match_string_to_regex match_string
                 accept = false
                 break

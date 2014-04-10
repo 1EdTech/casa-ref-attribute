@@ -11,11 +11,11 @@ module CASA
             retval = nil
 
             unless retval
-              retval = by_replacement_for payload if @options.has_key? 'replace'
+              retval = by_replacement_for payload if options.has_key? 'replace'
             end
 
             unless retval
-              retval = by_substitution_for payload if @options.has_key? 'substitute'
+              retval = by_substitution_for payload if options.has_key? 'substitute'
             end
 
             unless retval
@@ -32,7 +32,7 @@ module CASA
 
             attr = attribute_from payload
 
-            @options['substitute'].each do |match_string, replacement|
+            options['substitute'].each do |match_string, replacement|
               attr.gsub! match_string_to_regex(match_string), replacement
             end
 

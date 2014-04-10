@@ -79,7 +79,7 @@ module CASA
       end
 
       attr_reader :name
-      attr_reader :options
+      attr_accessor :options
 
       ATTRIBUTES = [
         'uuid',
@@ -110,7 +110,7 @@ module CASA
           registered = self.class.class_variable_get("@@operation_#{operation}")
           class_name = self.class.name
           if registered.include?(class_name) and registered[class_name].is_a?(Class)
-            @handlers[operation] = registered[class_name].new(self, @options.has_key?(operation) ? @options[operation] : nil)
+            @handlers[operation] = registered[class_name].new(self, operation)
           end
         end
 

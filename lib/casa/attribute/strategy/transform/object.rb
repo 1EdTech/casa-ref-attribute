@@ -11,7 +11,7 @@ module CASA
             retval = nil
 
             unless retval
-              retval = by_replacement_for payload if @options.has_key? 'replace'
+              retval = by_replacement_for payload if options.has_key? 'replace'
             end
 
             unless retval
@@ -26,8 +26,8 @@ module CASA
 
             payload_key = "#{payload['identity']['id']}@#{payload['identity']['originator_id']}"
 
-            if @options['replace'].has_key? payload_key
-              @options['replace'][payload_key]
+            if options['replace'].has_key? payload_key
+              options['replace'][payload_key]
             else
               nil
             end

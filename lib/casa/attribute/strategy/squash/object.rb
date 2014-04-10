@@ -8,10 +8,10 @@ module CASA
 
           def process payload
 
-            unless @options.has_key?('default')
+            unless options.has_key?('default')
               use_latest_from payload
             else
-              case @options['default']
+              case options['default']
                 when 'original'
                   use_original_from payload
                 else
