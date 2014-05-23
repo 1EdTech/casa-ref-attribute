@@ -1,3 +1,15 @@
-# CASA Attribute Specification - Base
+# CASA Attribute Base
 
-[![Code Climate](https://codeclimate.com/github/AppSharing/casa-attribute.png)](https://codeclimate.com/github/AppSharing/casa-attribute) [![Build Status](https://travis-ci.org/AppSharing/casa-attribute.png)](https://travis-ci.org/AppSharing/casa-attribute) [![Coverage Status](https://coveralls.io/repos/AppSharing/casa-attribute/badge.png?branch=master)](https://coveralls.io/r/AppSharing/casa-attribute?branch=master) [![Dependency Status](https://gemnasium.com/AppSharing/casa-attribute.png)](https://gemnasium.com/AppSharing/casa-attribute)
+The [Community App Sharing Architecture (CASA)](http://imsglobal.github.io/casa) provides a mechanism for
+discovering and sharing metadata about web resources such as websites, mobile
+apps and LTI tools. It models real-world decision-making through extensible
+attributes, filter and transform operations, flexible peering relationships,
+etc.
+
+This Ruby gem is part of the CASA reference implementation. It provides a
+foundation of common objects used by attribute handlers.
+
+## License
+
+This software is **open-source** and licensed under the Apache 2 license.
+The full text of the license may be found in the `LICENSE` file.
